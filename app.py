@@ -16,27 +16,37 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS FIX GIAO DIỆN (GIỮ NGUYÊN PHẦN ĐẸP) ---
+# --- 2. CSS FIX GIAO DIỆN CHUẨN (NỀN TRẮNG, NÚT 3D, ICON ĐEN) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     
+    /* 1. NỀN TRẮNG TUYỆT ĐỐI */
     [data-testid="stAppViewContainer"] { background-color: #ffffff !important; }
     
+    /* 2. HIỆN LẠI ICON GÓC PHẢI VÀ ÉP MÀU ĐEN */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
         visibility: visible !important;
+    }
+    [data-testid="stToolbar"] {
+        visibility: visible !important;
+        opacity: 1 !important;
+        right: 20px;
+        top: 10px;
     }
     header[data-testid="stHeader"] * {
         color: #000000 !important;
         fill: #000000 !important;
     }
     
+    /* FONT CHỮ */
     h1, h2, h3, h4, h5, h6, p, span, div, label {
         color: #000000 !important;
         font-family: 'Roboto', sans-serif;
     }
     
+    /* HEADER */
     .header-container {
         display: flex;
         align-items: center;
@@ -49,6 +59,7 @@ st.markdown("""
     .pro-tag { font-size: 0.4em; vertical-align: top; color: #d32f2f !important; font-weight: bold; margin-left: 5px; }
     .sub-title { font-size: 1.2em; color: #555555 !important; margin-top: 5px; font-weight: 500; }
     
+    /* 3. UPLOAD FILES */
     .upload-wrapper { margin-top: 20px; margin-bottom: 30px; }
     .upload-label { font-size: 1.1em; font-weight: 700; color: #003366 !important; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
@@ -60,6 +71,7 @@ st.markdown("""
         padding: 30px;
     }
     
+    /* Nút Browse files ĐEN, RÕ */
     [data-testid="stFileUploader"] button {
         background-color: #000000 !important;
         color: #ffffff !important;
@@ -74,7 +86,8 @@ st.markdown("""
         border-color: #333333 !important;
     }
     
-    .stButton {
+    /* 4. NÚT BẮT ĐẦU (CĂN GIỮA & 3D) */
+    div.stButton {
         display: flex;
         justify-content: center;
         width: 100%;
@@ -95,7 +108,6 @@ st.markdown("""
         margin-top: 10px;
         width: 100%;
     }
-    
     div.stButton > button:hover {
         transform: translateY(2px);
         box-shadow: 0 4px 0 #444444;
@@ -106,10 +118,12 @@ st.markdown("""
         box-shadow: 0 0 0 #444444;
     }
     
+    /* INPUT KEY */
     [data-testid="stTextInput"] input {
         color: #000000 !important; background: #ffffff !important; border: 1px solid #ccc; border-radius: 8px;
     }
     
+    /* KẾT QUẢ */
     .conic-result-box {
         background-color: #fff0f0; color: #d32f2f !important; padding: 15px; border-radius: 8px;
         font-family: 'Consolas', monospace; font-weight: bold; border-left: 5px solid #d32f2f;
@@ -121,14 +135,31 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. LOGIC BACKEND (CÓ BẮT LỖI CHI TIẾT) ---
+# --- 3. LOGIC BACKEND (ĐÃ SỬA LỖI MODEL) ---
 if 'data' not in st.session_state: st.session_state.data = [] 
 if 'selected_idx' not in st.session_state: st.session_state.selected_idx = 0 
 
-def get_gemini_response(uploaded_file, api_key):
+# HÀM TỰ ĐỘNG TÌM MODEL (LẤY TỪ APP THẮNG CẦY SANG)
+def get_best_model(api_key):
+    genai.configure(api_key=api_key)
+    try:
+        # Ưu tiên tìm các model Gemini 1.5
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods and 'gemini-1.5' in m.name:
+                return m.name
+        # Nếu không thấy thì tìm bất kỳ con Gemini nào
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods and 'gemini' in m.name:
+                return m.name
+    except:
+        return None
+    # Đường cùng thì mới trả về chuỗi mặc định, nhưng bỏ chữ 'models/' đi cho chắc
+    return "gemini-1.5-flash"
+
+def get_gemini_response(uploaded_file, api_key, model_name):
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("models/gemini-1.5-flash")
+        model = genai.GenerativeModel(model_name) # Dùng model_name động
         
         doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
         page = doc.load_page(0)
@@ -137,34 +168,41 @@ def get_gemini_response(uploaded_file, api_key):
         img_base64 = base64.b64encode(img_data).decode('utf-8')
         uploaded_file.seek(0)
         
+        # PROMPT GIỮ NGUYÊN TỪ APP THẮNG CẦY
         prompt = """
         Phân tích ảnh văn bản và trả về JSON.
-        OUTPUT JSON: { "new_name": "...", "date": "...", "number": "...", "authority": "...", "summary": "..." }
         
-        QUY TẮC:
-        1. Cấu trúc tên: YYYY.MM.DD_LOAI_SoHieu_NoiDung_TrangThai.pdf
-        2. YYYY.MM.DD: Năm.Tháng.Ngày (VD: 2025.12.31). Dấu CHẤM.
-        3. LOAI: QD, TTr, CV, TB, GP, HD, BB, BC...
-        4. SoHieu: Thay '/' bằng '-'.
-        5. NoiDung: Tiếng Việt không dấu, nối gạch dưới.
+        1. QUY TẮC TÊN FILE (new_name):
+           Cấu trúc: YYYY.MM.DD_LOAI_SoHieu_NoiDung_TrangThai.pdf
+           - YYYY.MM.DD: Năm.Tháng.Ngày (Ví dụ 2025.12.31). Dấu CHẤM.
+           - LOAI: Viết tắt (QD, TTr, CV, TB, GP, HD, BB, BC...).
+           - SoHieu: Số hiệu (Ví dụ 125-UBND, thay / bằng -).
+           - NoiDung: Tiếng Việt không dấu, nối gạch dưới (_).
+           - TrangThai: 'Signed'.
+           
+        2. TRƯỜNG HIỂN THỊ (Tiếng Việt có dấu):
+           - date: Ngày ký.
+           - number: Số hiệu.
+           - authority: Cơ quan ban hành.
+           - summary: Trích yếu ngắn gọn.
+           
+        OUTPUT JSON: { "new_name": "...", "date": "...", "number": "...", "authority": "...", "summary": "..." }
         """
         image_part = {"mime_type": "image/png", "data": img_data}
         
-        # Thử 3 lần
         for attempt in range(3):
             try:
                 response = model.generate_content([prompt, image_part])
                 txt = response.text.strip().replace("```json", "").replace("```", "")
                 data = json.loads(txt)
                 if not data['new_name'].lower().endswith(".pdf"): data['new_name'] += ".pdf"
-                return data, img_base64, None # Thành công
+                return data, img_base64, None
             except Exception as e:
                 time.sleep(1)
-                if attempt == 2: return None, None, str(e) # Lấy lỗi cuối cùng
-                
-        return None, None, "Hết thời gian chờ phản hồi."
+                if attempt == 2: return None, None, str(e)
+        return None, None, "Timeout"
     except Exception as e:
-        return None, None, f"Lỗi hệ thống: {str(e)}"
+        return None, None, str(e)
 
 # --- 4. GIAO DIỆN CHÍNH ---
 
@@ -200,37 +238,37 @@ cb1, cb2, cb3 = st.columns([1, 1, 1])
 with cb2:
     start_btn = st.button("BẮT ĐẦU ĐỔI TÊN", use_container_width=True)
 
-# --- 5. LOGIC CHẠY (FIXED) ---
+# --- 5. LOGIC CHẠY (ĐÃ FIX CHỌN MODEL) ---
 if start_btn:
     if not api_key: st.toast("⚠️ Nhập API Key đi sếp ơi!")
     elif not uploaded_files: st.toast("⚠️ Chưa có file nào hết!")
     else:
-        st.session_state.data = []; st.session_state.selected_idx = 0
-        bar = st.progress(0, text="Hệ thống đang xử lý...")
-        
-        errors = []
-        
-        for i, f in enumerate(uploaded_files):
-            meta, img, err = get_gemini_response(f, api_key)
-            if meta:
-                st.session_state.data.append({"original_name": f.name, "file_obj": f, "meta": meta, "img": img})
-            else:
-                errors.append(f"{f.name}: {err}")
-                
-            bar.progress((i + 1) / len(uploaded_files))
-        
-        bar.empty()
-        
-        # KIỂM TRA KẾT QUẢ
-        if st.session_state.data:
-            st.success(f"✅ Đã xử lý thành công {len(st.session_state.data)} hồ sơ!")
-            if errors:
-                with st.expander("⚠️ Có một số file bị lỗi"):
-                    for e in errors: st.error(e)
+        # TÌM MODEL XỊN NHẤT TRƯỚC KHI CHẠY
+        active_model = get_best_model(api_key)
+        if not active_model:
+            st.error("❌ Key không hợp lệ hoặc không tìm thấy Model phù hợp!")
         else:
-            st.error("❌ KHÔNG XỬ LÝ ĐƯỢC FILE NÀO! Vui lòng kiểm tra API KEY hoặc File PDF.")
-            if errors:
-                for e in errors: st.error(f"Chi tiết lỗi: {e}")
+            st.session_state.data = []; st.session_state.selected_idx = 0
+            bar = st.progress(0, text=f"Đang xử lý bằng AI ({active_model})...")
+            
+            errors = []
+            for i, f in enumerate(uploaded_files):
+                # Truyền active_model vào hàm xử lý
+                meta, img, err = get_gemini_response(f, api_key, active_model)
+                if meta:
+                    st.session_state.data.append({"original_name": f.name, "file_obj": f, "meta": meta, "img": img})
+                else:
+                    errors.append(f"{f.name}: {err}")
+                bar.progress((i + 1) / len(uploaded_files))
+            
+            bar.empty()
+            if st.session_state.data:
+                st.success(f"✅ Đã xử lý {len(st.session_state.data)} hồ sơ!")
+                if errors:
+                    with st.expander("⚠️ File lỗi"):
+                        for e in errors: st.error(e)
+            else:
+                st.error(f"❌ LỖI TOÀN BỘ: {errors[0] if errors else 'Không rõ nguyên nhân'}")
 
 # --- 6. DASHBOARD KẾT QUẢ ---
 if st.session_state.data:
@@ -243,11 +281,10 @@ if st.session_state.data:
         for i, item in enumerate(st.session_state.data):
             label = f"{i+1}. {item['original_name']}"
             if len(label)>25: label = label[:22]+"..."
-            # Highlight nút đang chọn
             btn_type = "primary" if i == st.session_state.selected_idx else "secondary"
             if st.button(label, key=f"sel_{i}", use_container_width=True, type=btn_type):
                 st.session_state.selected_idx = i
-                st.rerun() # Refresh lại để cập nhật cột bên phải
+                st.rerun()
                 
     idx = st.session_state.selected_idx
     if idx >= len(st.session_state.data): idx=0
