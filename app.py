@@ -16,30 +16,37 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS "CHÍNH CHỦ" THEO MẪU ---
+# --- 2. CSS "ÉP" GIAO DIỆN TRẮNG TINH ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     
-    body {
-        font-family: 'Roboto', sans-serif;
-        background-color: #ffffff !important; /* Nền trắng tinh */
+    /* 1. ÉP BACKGROUND MÀU TRẮNG CHO TOÀN BỘ WEB */
+    [data-testid="stAppViewContainer"] {
+        background-color: #ffffff !important;
+    }
+    [data-testid="stHeader"] {
+        background-color: rgba(0,0,0,0) !important; /* Header trong suốt */
     }
     
-    /* Ẩn Header mặc định Streamlit */
-    header[data-testid="stHeader"] {display: none;}
+    /* 2. ÉP MÀU CHỮ THÀNH ĐEN (Để không bị chữ trắng trên nền trắng) */
+    h1, h2, h3, h4, h5, h6, p, span, div {
+        color: #000000;
+        font-family: 'Roboto', sans-serif;
+    }
     
-    /* --- HEADER AREA --- */
+    /* 3. HEADER AREA */
     .header-container {
         display: flex;
         align-items: center;
         padding-bottom: 20px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #e0e0e0;
         margin-bottom: 30px;
+        background-color: #ffffff;
     }
     
     .logo-img {
-        height: 60px;
+        height: 65px;
         margin-right: 20px;
     }
     
@@ -51,24 +58,24 @@ st.markdown("""
     .main-title {
         font-size: 1.8em;
         font-weight: 700;
-        color: #000;
+        color: #000000 !important;
         line-height: 1.2;
     }
     
     .pro-tag {
         font-size: 0.5em;
         vertical-align: super;
-        color: #555;
+        color: #555555 !important;
         font-weight: normal;
     }
     
     .sub-title {
         font-size: 1.1em;
-        color: #333;
+        color: #333333 !important;
         margin-top: 5px;
     }
     
-    /* --- UPLOAD CARD (KHUNG TẢI HỒ SƠ) --- */
+    /* 4. UPLOAD CARD (KHUNG TẢI HỒ SƠ) */
     .upload-card {
         background-color: #ffffff;
         border: 1px solid #e0e0e0;
@@ -81,22 +88,32 @@ st.markdown("""
     .upload-header {
         font-size: 1.1em;
         font-weight: 600;
-        color: #003366;
+        color: #003366 !important;
         margin-bottom: 15px;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    /* Tùy chỉnh khung file uploader của Streamlit cho giống mẫu */
+    /* Tùy chỉnh khung file uploader cho SÁNG MÀU */
     [data-testid="stFileUploader"] {
-        border: 2px dashed #ccc;
-        border-radius: 10px;
         padding: 20px;
-        background-color: #fcfcfc;
+        background-color: #ffffff; 
+    }
+    [data-testid="stFileUploader"] section {
+        background-color: #f9f9f9 !important; /* Nền xám rất nhạt cho vùng kéo thả */
+        border: 2px dashed #cccccc;
+    }
+    [data-testid="stFileUploader"] section > div {
+        color: #333333 !important; /* Chữ hướng dẫn màu đen */
+    }
+    [data-testid="stFileUploader"] button {
+        background-color: #ffffff;
+        color: #333;
+        border: 1px solid #ccc;
     }
     
-    /* --- NÚT BẤM (CENTER) --- */
+    /* 5. NÚT BẤM (CENTER) */
     .stButton {
         text-align: center; 
         display: flex; 
@@ -104,9 +121,9 @@ st.markdown("""
     }
     
     div.stButton > button {
-        background-color: #ffffff;
-        color: #000;
-        border: 1px solid #000;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 2px solid #000000 !important;
         border-radius: 5px;
         padding: 10px 40px;
         font-size: 1.1em;
@@ -117,20 +134,31 @@ st.markdown("""
     }
     
     div.stButton > button:hover {
-        background-color: #000;
-        color: #fff;
-        border-color: #000;
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    /* 6. INPUT API KEY */
+    [data-testid="stTextInput"] label {
+        color: #000000 !important;
+    }
+    [data-testid="stTextInput"] input {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #ccc;
     }
     
     /* --- DASHBOARD RESULT STYLES --- */
-    .list-header { font-weight: bold; color: #555; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em; }
+    .list-header { font-weight: bold; color: #555 !important; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em; }
+    
     .preview-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 10px; height: 500px; display: flex; align-items: center; justify-content: center; }
     .preview-img { max-height: 100%; max-width: 100%; object-fit: contain; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
     
     .result-panel { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; height: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    
     .conic-result-box {
         background-color: #f0f0f0;
-        color: #d32f2f; /* Màu đỏ Conic */
+        color: #d32f2f !important; /* Màu đỏ Conic */
         padding: 15px;
         border-radius: 5px;
         font-family: 'Consolas', monospace;
@@ -139,14 +167,15 @@ st.markdown("""
         margin-bottom: 20px;
         word-break: break-all;
     }
+    
     .info-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 0.9em; }
-    .info-label { font-weight: bold; color: #777; }
-    .info-val { font-weight: 600; color: #333; }
+    .info-label { font-weight: bold; color: #777 !important; }
+    .info-val { font-weight: 600; color: #333 !important; }
 
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. LOGIC BACKEND (GIỮ NGUYÊN TỪ BẢN TRƯỚC) ---
+# --- 3. LOGIC BACKEND (GIỮ NGUYÊN) ---
 if 'data' not in st.session_state: st.session_state.data = [] 
 if 'selected_idx' not in st.session_state: st.session_state.selected_idx = 0 
 
@@ -201,7 +230,6 @@ def get_gemini_response(uploaded_file, api_key):
 col_head_1, col_head_2 = st.columns([3, 1])
 
 with col_head_1:
-    # Xử lý Logo
     logo_base64 = ""
     if os.path.exists("logo.png"):
         with open("logo.png", "rb") as f: logo_base64 = base64.b64encode(f.read()).decode()
@@ -219,10 +247,9 @@ with col_head_1:
     """, unsafe_allow_html=True)
 
 with col_head_2:
-    # Ô nhập API Key nằm gọn bên phải giống hình
     api_key = st.text_input("Google API Key", type="password")
 
-# 4.2. UPLOAD SECTION (Styled Card)
+# 4.2. UPLOAD CARD (KHUNG TẢI HỒ SƠ)
 st.markdown('<div class="upload-card">', unsafe_allow_html=True)
 st.markdown('<div class="upload-header">☁️ Tải Hồ Sơ</div>', unsafe_allow_html=True)
 uploaded_files = st.file_uploader("", type=['pdf'], accept_multiple_files=True, label_visibility="collapsed")
@@ -248,13 +275,12 @@ if start_btn:
             bar.progress((i + 1) / len(uploaded_files))
         bar.empty(); st.success("✅ Đã xử lý xong!")
 
-# --- 6. DASHBOARD RESULT (Chỉ hiện khi có data) ---
+# --- 6. DASHBOARD RESULT ---
 if st.session_state.data:
     st.markdown("---")
     
     c_list, c_view, c_res = st.columns([1, 1.5, 1.5])
     
-    # LIST
     with c_list:
         st.markdown(f"<div class='list-header'>📂 DANH SÁCH FILE ({len(st.session_state.data)})</div>", unsafe_allow_html=True)
         for i, item in enumerate(st.session_state.data):
@@ -263,7 +289,6 @@ if st.session_state.data:
             if st.button(label, key=f"sel_{i}", use_container_width=True):
                 st.session_state.selected_idx = i
                 
-    # PREVIEW & DETAIL
     idx = st.session_state.selected_idx
     if idx >= len(st.session_state.data): idx=0
     curr = st.session_state.data[idx]; meta = curr['meta']
@@ -294,7 +319,6 @@ if st.session_state.data:
         curr['file_obj'].seek(0)
         st.download_button("⬇️ TẢI FILE NÀY", curr['file_obj'], meta['new_name'], "application/pdf", type="primary", use_container_width=True)
 
-    # ZIP
     st.markdown("---")
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, "w") as zf:
