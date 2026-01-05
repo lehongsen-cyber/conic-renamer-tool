@@ -16,21 +16,28 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS FIX LỖI TRIỆT ĐỂ ---
+# --- 2. CSS SỬA LỖI TRIỆT ĐỂ ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     
-    /* 1. ÉP NỀN TRẮNG TUYỆT ĐỐI */
+    /* 1. NỀN TRẮNG TUYỆT ĐỐI */
     [data-testid="stAppViewContainer"] { background-color: #ffffff !important; }
     
-    /* 2. HIỆN LẠI CÁC ICON GÓC PHẢI TRÊN (MENU, DEPLOY...) VÀ ĐỔI MÀU ĐEN */
+    /* 2. HIỆN LẠI ICON GÓC PHẢI VÀ ÉP MÀU ĐEN */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
-        display: block !important; /* Bắt buộc hiện */
+        visibility: visible !important;
     }
-    header[data-testid="stHeader"] * {
-        color: #000000 !important; /* Icon màu đen cho nổi trên nền trắng */
+    [data-testid="stToolbar"] {
+        visibility: visible !important;
+        opacity: 1 !important;
+        right: 20px;
+        top: 10px;
+    }
+    /* Ép màu icon sang đen */
+    [data-testid="stHeader"] button, [data-testid="stHeader"] svg, [data-testid="stToolbar"] button, [data-testid="stToolbar"] svg {
+        color: #000000 !important;
         fill: #000000 !important;
     }
     
@@ -40,7 +47,7 @@ st.markdown("""
         font-family: 'Roboto', sans-serif;
     }
     
-    /* HEADER APP */
+    /* HEADER */
     .header-container {
         display: flex;
         align-items: center;
@@ -53,7 +60,7 @@ st.markdown("""
     .pro-tag { font-size: 0.4em; vertical-align: top; color: #d32f2f !important; font-weight: bold; margin-left: 5px; }
     .sub-title { font-size: 1.2em; color: #555555 !important; margin-top: 5px; font-weight: 500; }
     
-    /* UPLOAD CARD & FIX NÚT BROWSE FILES */
+    /* 3. FIX NÚT BROWSE FILES (QUAN TRỌNG) */
     .upload-wrapper { margin-top: 20px; margin-bottom: 30px; }
     .upload-label { font-size: 1.1em; font-weight: 700; color: #003366 !important; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
@@ -61,51 +68,48 @@ st.markdown("""
     [data-testid="stFileUploader"] section {
         background-color: #f8f9fa !important;
         border: 2px dashed #d1d5db;
-        border-radius: 15px;
-        padding: 40px;
+        border-radius: 12px;
+        padding: 30px;
     }
     
-    /* FIX NÚT 'BROWSE FILES' CHO RÕ NÉT */
+    /* Ép nút Browse files hiện rõ 100% */
     [data-testid="stFileUploader"] button {
         background-color: #000000 !important; /* Nền đen */
         color: #ffffff !important; /* Chữ trắng */
-        border: none !important;
+        border: 2px solid #000000 !important;
+        opacity: 1 !important; /* KHÔNG ĐƯỢC MỜ */
         font-weight: bold !important;
-        opacity: 1 !important; /* Không cho mờ */
-        padding: 8px 15px !important;
+        padding: 8px 20px !important;
+        width: auto !important;
     }
     [data-testid="stFileUploader"] button:hover {
-        background-color: #333333 !important; /* Hover xám đậm */
+        background-color: #333333 !important;
+        border-color: #333333 !important;
     }
     
-    /* CĂN GIỮA NÚT BẮT ĐẦU (DÙNG FLEXBOX) */
-    .stButton {
-        display: flex;
-        justify-content: center; /* Căn giữa chiều ngang */
-        width: 100%;
-    }
-    
+    /* 4. FIX NÚT BẮT ĐẦU (CĂN GIỮA & 3D) */
     div.stButton > button {
         background-color: #ffffff !important;
         color: #000000 !important;
         border: 2px solid #000000 !important;
-        border-radius: 12px;
-        padding: 15px 50px;
+        border-radius: 10px;
+        padding: 15px 0px; /* Padding dọc */
         font-size: 1.3em;
         font-weight: 800;
         text-transform: uppercase;
+        
+        /* Hiệu ứng 3D */
         box-shadow: 0 6px 0 #444444;
         transform: translateY(0);
         transition: all 0.1s;
         margin-top: 10px;
-        /* Đảm bảo nút không bị giãn full màn hình */
-        width: auto !important; 
-        min-width: 300px;
+        width: 100%; /* Full chiều rộng cột chứa nó */
     }
     
     div.stButton > button:hover {
         transform: translateY(2px);
         box-shadow: 0 4px 0 #444444;
+        background-color: #f0f0f0 !important;
     }
     div.stButton > button:active {
         transform: translateY(6px);
@@ -206,9 +210,11 @@ st.markdown('<div class="upload-label">☁️ Tải Hồ Sơ (Kéo thả file v�
 uploaded_files = st.file_uploader("", type=['pdf'], accept_multiple_files=True, label_visibility="collapsed")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# BUTTON START (CĂN GIỮA TUYỆT ĐỐI BẰNG CỘT RỖNG)
-# Chỉ dùng 1 cột duy nhất để CSS tự xử lý việc căn giữa
-start_btn = st.button("BẮT ĐẦU ĐỔI TÊN")
+# BUTTON START (CĂN GIỮA TUYỆT ĐỐI BẰNG CỘT)
+# Mẹo: Chia 3 cột tỷ lệ 1:1:1 và đặt nút vào cột giữa. Dùng `use_container_width=True` để nó full cột giữa -> Sẽ nằm ngay tâm.
+cb1, cb2, cb3 = st.columns([1, 1, 1])
+with cb2:
+    start_btn = st.button("BẮT ĐẦU ĐỔI TÊN", use_container_width=True)
 
 # --- 5. LOGIC CHẠY ---
 if start_btn:
