@@ -16,107 +16,93 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS "ÉP" GIAO DIỆN TRẮNG TINH ---
+# --- 2. CSS "ÉP" GIAO DIỆN TRẮNG & NÚT 3D ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     
-    /* 1. ÉP BACKGROUND MÀU TRẮNG CHO TOÀN BỘ WEB */
-    [data-testid="stAppViewContainer"] {
-        background-color: #ffffff !important;
-    }
-    [data-testid="stHeader"] {
-        background-color: rgba(0,0,0,0) !important; /* Header trong suốt */
-    }
+    /* ÉP MÀU TRẮNG TUYỆT ĐỐI */
+    [data-testid="stAppViewContainer"] { background-color: #ffffff !important; }
+    [data-testid="stHeader"] { background-color: rgba(0,0,0,0) !important; } /* Hiện lại Header nhưng trong suốt */
     
-    /* 2. ÉP MÀU CHỮ THÀNH ĐEN (Để không bị chữ trắng trên nền trắng) */
-    h1, h2, h3, h4, h5, h6, p, span, div {
-        color: #000000;
+    /* FONT & MÀU CHỮ */
+    h1, h2, h3, h4, h5, h6, p, span, div, label {
+        color: #000000 !important;
         font-family: 'Roboto', sans-serif;
     }
     
-    /* 3. HEADER AREA */
+    /* HEADER: BỎ ĐƯỜNG KẺ DƯỚI */
     .header-container {
         display: flex;
         align-items: center;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #e0e0e0;
-        margin-bottom: 30px;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        /* border-bottom: 1px solid #e0e0e0; -> ĐÃ XÓA THEO YÊU CẦU */
         background-color: #ffffff;
     }
     
-    .logo-img {
-        height: 65px;
-        margin-right: 20px;
-    }
-    
-    .title-box {
-        display: flex;
-        flex-direction: column;
-    }
+    .logo-img { height: 75px; margin-right: 25px; }
     
     .main-title {
-        font-size: 1.8em;
-        font-weight: 700;
+        font-size: 2.2em;
+        font-weight: 800;
         color: #000000 !important;
-        line-height: 1.2;
+        line-height: 1.1;
+        letter-spacing: -0.5px;
     }
     
     .pro-tag {
-        font-size: 0.5em;
-        vertical-align: super;
-        color: #555555 !important;
-        font-weight: normal;
+        font-size: 0.4em;
+        vertical-align: top;
+        color: #d32f2f !important; /* Màu đỏ Conic */
+        font-weight: bold;
+        margin-left: 5px;
     }
     
     .sub-title {
-        font-size: 1.1em;
-        color: #333333 !important;
+        font-size: 1.2em;
+        color: #555555 !important;
         margin-top: 5px;
+        font-weight: 500;
     }
     
-    /* 4. UPLOAD CARD (KHUNG TẢI HỒ SƠ) */
-    .upload-card {
-        background-color: #ffffff;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    /* UPLOAD CARD: TINH GỌN, BỎ KHUNG THỪA */
+    .upload-wrapper {
+        margin-top: 20px;
         margin-bottom: 30px;
     }
     
-    .upload-header {
+    .upload-label {
         font-size: 1.1em;
-        font-weight: 600;
+        font-weight: 700;
         color: #003366 !important;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    /* Tùy chỉnh khung file uploader cho SÁNG MÀU */
+    /* Tùy chỉnh khung file uploader Streamlit */
     [data-testid="stFileUploader"] {
-        padding: 20px;
-        background-color: #ffffff; 
+        padding: 0px;
+        background-color: #ffffff;
+        border: none;
     }
     [data-testid="stFileUploader"] section {
-        background-color: #f9f9f9 !important; /* Nền xám rất nhạt cho vùng kéo thả */
-        border: 2px dashed #cccccc;
+        background-color: #f8f9fa !important;
+        border: 2px dashed #d1d5db;
+        border-radius: 15px;
+        padding: 40px; /* Tăng padding cho rộng rãi */
     }
-    [data-testid="stFileUploader"] section > div {
-        color: #333333 !important; /* Chữ hướng dẫn màu đen */
-    }
-    [data-testid="stFileUploader"] button {
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ccc;
+    [data-testid="stFileUploader"] section:hover {
+        border-color: #d32f2f; /* Hover đỏ */
+        background-color: #fff5f5 !important;
     }
     
-    /* 5. NÚT BẤM (CENTER) */
-    .stButton {
-        text-align: center; 
-        display: flex; 
+    /* NÚT BẤM 3D (Ở GIỮA) */
+    div.stButton {
+        text-align: center;
+        display: flex;
         justify-content: center;
     }
     
@@ -124,58 +110,59 @@ st.markdown("""
         background-color: #ffffff !important;
         color: #000000 !important;
         border: 2px solid #000000 !important;
-        border-radius: 5px;
-        padding: 10px 40px;
-        font-size: 1.1em;
-        font-weight: 600;
+        border-radius: 12px; /* Bo góc mềm hơn */
+        padding: 15px 50px;
+        font-size: 1.3em;
+        font-weight: 800;
         text-transform: uppercase;
-        box-shadow: none;
-        transition: all 0.3s;
+        
+        /* HIỆU ỨNG 3D */
+        box-shadow: 0 6px 0 #444444; /* Cái bóng dày */
+        transform: translateY(0);
+        transition: all 0.1s;
+        margin-top: 10px;
     }
     
     div.stButton > button:hover {
         background-color: #000000 !important;
         color: #ffffff !important;
+        border-color: #000000 !important;
+        transform: translateY(2px); /* Nhún xuống xíu khi rê chuột */
+        box-shadow: 0 4px 0 #444444;
     }
     
-    /* 6. INPUT API KEY */
-    [data-testid="stTextInput"] label {
-        color: #000000 !important;
+    div.stButton > button:active {
+        transform: translateY(6px); /* Lún hẳn xuống khi bấm */
+        box-shadow: 0 0 0 #444444; /* Mất bóng */
     }
+    
+    /* INPUT API KEY */
     [data-testid="stTextInput"] input {
         color: #000000 !important;
         background-color: #ffffff !important;
         border: 1px solid #ccc;
+        border-radius: 8px;
     }
     
-    /* --- DASHBOARD RESULT STYLES --- */
-    .list-header { font-weight: bold; color: #555 !important; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em; }
-    
-    .preview-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 10px; height: 500px; display: flex; align-items: center; justify-content: center; }
-    .preview-img { max-height: 100%; max-width: 100%; object-fit: contain; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    
-    .result-panel { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; height: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    
+    /* KẾT QUẢ */
     .conic-result-box {
-        background-color: #f0f0f0;
-        color: #d32f2f !important; /* Màu đỏ Conic */
+        background-color: #fff0f0;
+        color: #d32f2f !important;
         padding: 15px;
-        border-radius: 5px;
+        border-radius: 8px;
         font-family: 'Consolas', monospace;
         font-weight: bold;
         border-left: 5px solid #d32f2f;
         margin-bottom: 20px;
         word-break: break-all;
     }
+    .preview-box { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; height: 550px; display: flex; align-items: center; justify-content: center; }
+    .preview-img { max-height: 100%; max-width: 100%; object-fit: contain; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
     
-    .info-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 0.9em; }
-    .info-label { font-weight: bold; color: #777 !important; }
-    .info-val { font-weight: 600; color: #333 !important; }
-
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. LOGIC BACKEND (GIỮ NGUYÊN) ---
+# --- 3. LOGIC BACKEND ---
 if 'data' not in st.session_state: st.session_state.data = [] 
 if 'selected_idx' not in st.session_state: st.session_state.selected_idx = 0 
 
@@ -191,7 +178,6 @@ def get_gemini_response(uploaded_file, api_key):
         img_base64 = base64.b64encode(img_data).decode('utf-8')
         uploaded_file.seek(0)
         
-        # Prompt chuẩn
         prompt = """
         Phân tích ảnh văn bản và trả về JSON.
         
@@ -224,12 +210,14 @@ def get_gemini_response(uploaded_file, api_key):
         return None, None
     except: return None, None
 
-# --- 4. GIAO DIỆN HEADER & INPUT ---
+# --- 4. GIAO DIỆN CHÍNH ---
 
-# 4.1. LOGO & TITLE SECTION
-col_head_1, col_head_2 = st.columns([3, 1])
+# 4.1. HEADER (LOGO + TITLE + API KEY)
+# Chia làm 2 cột: 80% cho Logo/Title, 20% cho API Key
+c_head, c_key = st.columns([4, 1.5])
 
-with col_head_1:
+with c_head:
+    # Load Logo
     logo_base64 = ""
     if os.path.exists("logo.png"):
         with open("logo.png", "rb") as f: logo_base64 = base64.b64encode(f.read()).decode()
@@ -239,50 +227,52 @@ with col_head_1:
     st.markdown(f"""
     <div class="header-container">
         {logo_html}
-        <div class="title-box">
-            <div class="main-title">CONIC PDF RENAMER <span class="pro-tag">Pro</span></div>
+        <div>
+            <div class="main-title">CONIC PDF RENAMER<span class="pro-tag">PRO</span></div>
             <div class="sub-title">Ban Đầu tư - Phát triển Dự án</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-with col_head_2:
+with c_key:
+    # API Key nằm gọn góc phải
     api_key = st.text_input("Google API Key", type="password")
 
-# 4.2. UPLOAD CARD (KHUNG TẢI HỒ SƠ)
-st.markdown('<div class="upload-card">', unsafe_allow_html=True)
-st.markdown('<div class="upload-header">☁️ Tải Hồ Sơ</div>', unsafe_allow_html=True)
+# 4.2. UPLOAD SECTION (ĐÃ XÓA KHUNG CHỮ NHẬT THỪA)
+# Bọc trong div wrapper để căn chỉnh
+st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
+st.markdown('<div class="upload-label">☁️ Tải Hồ Sơ (Kéo thả file vào khung dưới)</div>', unsafe_allow_html=True)
 uploaded_files = st.file_uploader("", type=['pdf'], accept_multiple_files=True, label_visibility="collapsed")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 4.3. BUTTON CENTER
-st.write("")
-col_btn_1, col_btn_2, col_btn_3 = st.columns([1, 2, 1])
-with col_btn_2:
+# 4.3. NÚT BẤM 3D (CĂN GIỮA TUYỆT ĐỐI)
+# Dùng 3 cột tỷ lệ 1-1-1 để ép nút vào giữa
+cb1, cb2, cb3 = st.columns([1, 1, 1])
+with cb2:
     start_btn = st.button("BẮT ĐẦU ĐỔI TÊN")
 
 # --- 5. LOGIC CHẠY ---
 if start_btn:
-    if not api_key: st.toast("⚠️ Vui lòng nhập API Key ở góc phải!")
-    elif not uploaded_files: st.toast("⚠️ Vui lòng chọn file PDF!")
+    if not api_key: st.toast("⚠️ Nhập API Key đi sếp ơi!")
+    elif not uploaded_files: st.toast("⚠️ Chưa có file nào hết!")
     else:
         st.session_state.data = []; st.session_state.selected_idx = 0
-        bar = st.progress(0, text="Đang xử lý...")
+        bar = st.progress(0, text="Hệ thống đang xử lý...")
         for i, f in enumerate(uploaded_files):
             meta, img = get_gemini_response(f, api_key)
             if meta:
                 st.session_state.data.append({"original_name": f.name, "file_obj": f, "meta": meta, "img": img})
             bar.progress((i + 1) / len(uploaded_files))
-        bar.empty(); st.success("✅ Đã xử lý xong!")
+        bar.empty(); st.success("✅ Xong rồi! Mời sếp kiểm tra.")
 
-# --- 6. DASHBOARD RESULT ---
+# --- 6. DASHBOARD KẾT QUẢ ---
 if st.session_state.data:
     st.markdown("---")
     
     c_list, c_view, c_res = st.columns([1, 1.5, 1.5])
     
     with c_list:
-        st.markdown(f"<div class='list-header'>📂 DANH SÁCH FILE ({len(st.session_state.data)})</div>", unsafe_allow_html=True)
+        st.markdown(f"**📂 DANH SÁCH ({len(st.session_state.data)})**")
         for i, item in enumerate(st.session_state.data):
             label = f"{i+1}. {item['original_name']}"
             if len(label)>25: label = label[:22]+"..."
@@ -294,23 +284,29 @@ if st.session_state.data:
     curr = st.session_state.data[idx]; meta = curr['meta']
     
     with c_view:
-        st.markdown("<div class='list-header'>👁️ XEM TRƯỚC</div>", unsafe_allow_html=True)
+        st.markdown("**👁️ XEM TRƯỚC**")
         st.markdown(f'<div class="preview-box"><img src="data:image/png;base64,{curr["img"]}" class="preview-img"></div>', unsafe_allow_html=True)
         
     with c_res:
-        st.markdown("<div class='list-header'>✨ KẾT QUẢ</div>", unsafe_allow_html=True)
+        st.markdown("**✨ KẾT QUẢ**")
         st.markdown(f"""
-        <div class="result-panel">
-            <div style="font-size:0.8em; color:#777; margin-bottom:5px;">TÊN FILE ĐỀ XUẤT:</div>
+        <div style="background:#fff; padding:20px; border-radius:10px; border:1px solid #eee; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+            <div style="font-size:0.8em; color:#999; margin-bottom:5px;">TÊN FILE ĐỀ XUẤT:</div>
             <div class="conic-result-box">{meta['new_name']}</div>
             
-            <div class="info-row"><span class="info-label">Ngày BH:</span> <span class="info-val">{meta.get('date','-')}</span></div>
-            <div class="info-row"><span class="info-label">Số hiệu:</span> <span class="info-val">{meta.get('number','-')}</span></div>
-            <div class="info-row"><span class="info-label">Cơ quan:</span> <span class="info-val">{meta.get('authority','-')}</span></div>
-            
-            <div style="margin-top:15px;">
-                <span class="info-label">Trích yếu:</span><br>
-                <span style="font-style:italic; color:#333;">{meta.get('summary','-')}</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #f0f0f0; padding-bottom:5px;">
+                <span style="color:#777; font-weight:bold;">Ngày BH:</span> <span>{meta.get('date','-')}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #f0f0f0; padding-bottom:5px;">
+                <span style="color:#777; font-weight:bold;">Số hiệu:</span> <span>{meta.get('number','-')}</span>
+            </div>
+            <div style="margin-bottom:15px;">
+                <span style="color:#777; font-weight:bold;">Cơ quan:</span><br>
+                <span>{meta.get('authority','-')}</span>
+            </div>
+             <div style="margin-bottom:15px;">
+                <span style="color:#777; font-weight:bold;">Trích yếu:</span><br>
+                <span style="font-style:italic;">{meta.get('summary','-')}</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
