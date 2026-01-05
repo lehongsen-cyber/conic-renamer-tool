@@ -7,7 +7,6 @@ import zipfile
 import base64
 import time
 import os
-import textwrap
 
 # --- 1. CẤU HÌNH TRANG ---
 st.set_page_config(
@@ -17,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS CHUẨN MEN (NÚT ĐỎ - NỀN TRẮNG) ---
+# --- 2. CSS CHUẨN MEN (NÚT ĐỎ - NỀN TRẮNG - FIX HIỂN THỊ) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
@@ -75,22 +74,17 @@ st.markdown("""
     /* INPUT KEY */
     [data-testid="stTextInput"] input { color: #000000 !important; background: #ffffff !important; border: 1px solid #ccc; border-radius: 8px; }
     
-    /* KẾT QUẢ */
-    .conic-result-box {
-        background-color: #fff0f0; color: #d32f2f !important; padding: 15px; border-radius: 8px;
-        font-family: 'Consolas', monospace; font-weight: bold; border-left: 5px solid #d32f2f;
-        margin-bottom: 20px; word-break: break-all;
-    }
-    .preview-box { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; height: 550px; display: flex; align-items: center; justify-content: center; }
-    .preview-img { max-height: 100%; max-width: 100%; object-fit: contain; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-    
     /* LIST HEADER */
     .list-header { font-weight: bold; color: #555 !important; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em; }
     
+    /* PREVIEW IMG */
+    .preview-box { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; height: 550px; display: flex; align-items: center; justify-content: center; }
+    .preview-img { max-height: 100%; max-width: 100%; object-fit: contain; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. LOGIC XỬ LÝ ---
+# --- 3. LOGIC XỬ LÝ (ĐÃ CẬP NHẬT QUY TẮC KHÔNG DẤU) ---
 if 'data' not in st.session_state: st.session_state.data = [] 
 if 'selected_idx' not in st.session_state: st.session_state.selected_idx = 0 
 
@@ -116,9 +110,27 @@ def get_gemini_response(uploaded_file, api_key, model_name):
         img_base64 = base64.b64encode(img_data).decode('utf-8')
         uploaded_file.seek(0)
         
+        # --- CẬP NHẬT PROMPT: BẮT BUỘC KHÔNG DẤU ---
         prompt = """
-        Phân tích ảnh văn bản và trả về JSON.
-        QUY TẮC: YYYY.MM.DD_LOAI_SoHieu_NoiDung_TrangThai.pdf
+        Phân tích hình ảnh văn bản và trả về kết quả JSON.
+        
+        1. QUY TẮC ĐẶT TÊN FILE (new_name):
+           Cấu trúc: YYYY.MM.DD_LOAI_SoHieu_NoiDung_TrangThai.pdf
+           
+           * YÊU CẦU QUAN TRỌNG:
+           - YYYY.MM.DD: Năm.Tháng.Ngày (Ví dụ 2025.12.31). Dấu CHẤM.
+           - LOAI: Viết tắt (QD, TTr, CV, TB, GP, HD, BB, BC...).
+           - SoHieu: Số hiệu (Thay '/' bằng '-').
+           - NoiDung: Tóm tắt nội dung. BẮT BUỘC DÙNG TIẾNG VIỆT KHÔNG DẤU (Remove accents/diacritics). Nối bằng gạch dưới (_).
+             Ví dụ: "Phê duyệt" -> "Phe_duyet". TUYỆT ĐỐI KHÔNG ĐỂ CÓ DẤU.
+           - TrangThai: 'Signed'.
+           
+        2. CÁC TRƯỜNG HIỂN THỊ UI (Có dấu bình thường):
+           - date: Ngày ký.
+           - number: Số hiệu.
+           - authority: Cơ quan ban hành.
+           - summary: Trích yếu ngắn gọn (Có dấu).
+           
         OUTPUT JSON: { "new_name": "...", "date": "...", "number": "...", "authority": "...", "summary": "..." }
         """
         image_part = {"mime_type": "image/png", "data": img_data}
@@ -203,7 +215,6 @@ if st.session_state.data:
         for i, item in enumerate(st.session_state.data):
             label = f"{i+1}. {item['original_name']}"
             if len(label)>25: label = label[:22]+"..."
-            # Nếu đang chọn -> primary (Đỏ), ngược lại secondary (Trắng)
             b_type = "primary" if i == st.session_state.selected_idx else "secondary"
             if st.button(label, key=f"sel_{i}", use_container_width=True, type=b_type):
                 st.session_state.selected_idx = i
@@ -220,11 +231,11 @@ if st.session_state.data:
     with c_res:
         st.markdown("<div class='list-header'>✨ KẾT QUẢ</div>", unsafe_allow_html=True)
         
-        # HTML FIX: Loại bỏ thụt đầu dòng để tránh lỗi hiển thị code block
-        html_content = f"""
+        # FIX HTML DISPLAY ERROR: Xóa thụt đầu dòng (indentation) trong string
+        res_html = f"""
 <div style="background:#fff; padding:20px; border-radius:10px; border:1px solid #eee; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-    <div style="font-size:0.8em; color:#999; margin-bottom:5px;">TÊN FILE ĐỀ XUẤT:</div>
-    <div class="conic-result-box">{meta['new_name']}</div>
+    <div style="font-size:0.8em; color:#999; margin-bottom:5px;">TÊN FILE ĐỀ XUẤT (KHÔNG DẤU):</div>
+    <div style="background-color:#fff0f0; color:#d32f2f; padding:15px; border-radius:8px; font-family:'Consolas',monospace; font-weight:bold; border-left:5px solid #d32f2f; margin-bottom:20px; word-break:break-all;">{meta['new_name']}</div>
     
     <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #f0f0f0; padding-bottom:5px;">
         <span style="color:#777; font-weight:bold;">Ngày BH:</span> <span>{meta.get('date','-')}</span>
@@ -242,11 +253,10 @@ if st.session_state.data:
     </div>
 </div>
 """
-        st.markdown(html_content, unsafe_allow_html=True)
+        st.markdown(res_html, unsafe_allow_html=True)
         
         st.write("")
         curr['file_obj'].seek(0)
-        # Nút tải lẻ: Primary (Đỏ)
         st.download_button("⬇️ TẢI FILE NÀY", curr['file_obj'], meta['new_name'], "application/pdf", type="primary", use_container_width=True)
 
     st.markdown("---")
@@ -257,5 +267,4 @@ if st.session_state.data:
     
     _, c_cen, _ = st.columns(3)
     with c_cen:
-        # Nút tải ZIP: Primary (Đỏ) -> Sáng rực rỡ luôn!
         st.download_button("📦 TẢI TRỌN BỘ (ZIP)", zip_buf.getvalue(), "Conic_Files.zip", "application/zip", type="primary", use_container_width=True)
