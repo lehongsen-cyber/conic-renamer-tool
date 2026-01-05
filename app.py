@@ -16,38 +16,27 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS SỬA LỖI TRIỆT ĐỂ ---
+# --- 2. CSS FIX GIAO DIỆN (GIỮ NGUYÊN PHẦN ĐẸP) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     
-    /* 1. NỀN TRẮNG TUYỆT ĐỐI */
     [data-testid="stAppViewContainer"] { background-color: #ffffff !important; }
     
-    /* 2. HIỆN LẠI ICON GÓC PHẢI VÀ ÉP MÀU ĐEN */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
         visibility: visible !important;
     }
-    [data-testid="stToolbar"] {
-        visibility: visible !important;
-        opacity: 1 !important;
-        right: 20px;
-        top: 10px;
-    }
-    /* Ép màu icon sang đen */
-    [data-testid="stHeader"] button, [data-testid="stHeader"] svg, [data-testid="stToolbar"] button, [data-testid="stToolbar"] svg {
+    header[data-testid="stHeader"] * {
         color: #000000 !important;
         fill: #000000 !important;
     }
     
-    /* FONT CHỮ */
     h1, h2, h3, h4, h5, h6, p, span, div, label {
         color: #000000 !important;
         font-family: 'Roboto', sans-serif;
     }
     
-    /* HEADER */
     .header-container {
         display: flex;
         align-items: center;
@@ -60,7 +49,6 @@ st.markdown("""
     .pro-tag { font-size: 0.4em; vertical-align: top; color: #d32f2f !important; font-weight: bold; margin-left: 5px; }
     .sub-title { font-size: 1.2em; color: #555555 !important; margin-top: 5px; font-weight: 500; }
     
-    /* 3. FIX NÚT BROWSE FILES (QUAN TRỌNG) */
     .upload-wrapper { margin-top: 20px; margin-bottom: 30px; }
     .upload-label { font-size: 1.1em; font-weight: 700; color: #003366 !important; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
@@ -72,12 +60,11 @@ st.markdown("""
         padding: 30px;
     }
     
-    /* Ép nút Browse files hiện rõ 100% */
     [data-testid="stFileUploader"] button {
-        background-color: #000000 !important; /* Nền đen */
-        color: #ffffff !important; /* Chữ trắng */
+        background-color: #000000 !important;
+        color: #ffffff !important;
         border: 2px solid #000000 !important;
-        opacity: 1 !important; /* KHÔNG ĐƯỢC MỜ */
+        opacity: 1 !important;
         font-weight: bold !important;
         padding: 8px 20px !important;
         width: auto !important;
@@ -87,23 +74,26 @@ st.markdown("""
         border-color: #333333 !important;
     }
     
-    /* 4. FIX NÚT BẮT ĐẦU (CĂN GIỮA & 3D) */
+    .stButton {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+    
     div.stButton > button {
         background-color: #ffffff !important;
         color: #000000 !important;
         border: 2px solid #000000 !important;
         border-radius: 10px;
-        padding: 15px 0px; /* Padding dọc */
+        padding: 15px 0px;
         font-size: 1.3em;
         font-weight: 800;
         text-transform: uppercase;
-        
-        /* Hiệu ứng 3D */
         box-shadow: 0 6px 0 #444444;
         transform: translateY(0);
         transition: all 0.1s;
         margin-top: 10px;
-        width: 100%; /* Full chiều rộng cột chứa nó */
+        width: 100%;
     }
     
     div.stButton > button:hover {
@@ -116,12 +106,10 @@ st.markdown("""
         box-shadow: 0 0 0 #444444;
     }
     
-    /* INPUT KEY */
     [data-testid="stTextInput"] input {
         color: #000000 !important; background: #ffffff !important; border: 1px solid #ccc; border-radius: 8px;
     }
     
-    /* KẾT QUẢ */
     .conic-result-box {
         background-color: #fff0f0; color: #d32f2f !important; padding: 15px; border-radius: 8px;
         font-family: 'Consolas', monospace; font-weight: bold; border-left: 5px solid #d32f2f;
@@ -133,7 +121,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. LOGIC BACKEND ---
+# --- 3. LOGIC BACKEND (CÓ BẮT LỖI CHI TIẾT) ---
 if 'data' not in st.session_state: st.session_state.data = [] 
 if 'selected_idx' not in st.session_state: st.session_state.selected_idx = 0 
 
@@ -151,35 +139,32 @@ def get_gemini_response(uploaded_file, api_key):
         
         prompt = """
         Phân tích ảnh văn bản và trả về JSON.
-        
-        1. QUY TẮC TÊN FILE (new_name):
-           Cấu trúc: YYYY.MM.DD_LOAI_SoHieu_NoiDung_TrangThai.pdf
-           - YYYY.MM.DD: Năm.Tháng.Ngày (Ví dụ 2025.12.31). Dấu CHẤM.
-           - LOAI: Viết tắt (QD, TTr, CV, TB, GP, HD, BB, BC...).
-           - SoHieu: Số hiệu (Ví dụ 125-UBND, thay / bằng -).
-           - NoiDung: Tiếng Việt không dấu, nối gạch dưới (_).
-           - TrangThai: 'Signed'.
-           
-        2. TRƯỜNG HIỂN THỊ (Tiếng Việt có dấu):
-           - date: Ngày ký.
-           - number: Số hiệu.
-           - authority: Cơ quan ban hành.
-           - summary: Trích yếu ngắn gọn.
-           
         OUTPUT JSON: { "new_name": "...", "date": "...", "number": "...", "authority": "...", "summary": "..." }
+        
+        QUY TẮC:
+        1. Cấu trúc tên: YYYY.MM.DD_LOAI_SoHieu_NoiDung_TrangThai.pdf
+        2. YYYY.MM.DD: Năm.Tháng.Ngày (VD: 2025.12.31). Dấu CHẤM.
+        3. LOAI: QD, TTr, CV, TB, GP, HD, BB, BC...
+        4. SoHieu: Thay '/' bằng '-'.
+        5. NoiDung: Tiếng Việt không dấu, nối gạch dưới.
         """
         image_part = {"mime_type": "image/png", "data": img_data}
         
-        for _ in range(3):
+        # Thử 3 lần
+        for attempt in range(3):
             try:
                 response = model.generate_content([prompt, image_part])
                 txt = response.text.strip().replace("```json", "").replace("```", "")
                 data = json.loads(txt)
                 if not data['new_name'].lower().endswith(".pdf"): data['new_name'] += ".pdf"
-                return data, img_base64
-            except: time.sleep(1)
-        return None, None
-    except: return None, None
+                return data, img_base64, None # Thành công
+            except Exception as e:
+                time.sleep(1)
+                if attempt == 2: return None, None, str(e) # Lấy lỗi cuối cùng
+                
+        return None, None, "Hết thời gian chờ phản hồi."
+    except Exception as e:
+        return None, None, f"Lỗi hệ thống: {str(e)}"
 
 # --- 4. GIAO DIỆN CHÍNH ---
 
@@ -210,25 +195,42 @@ st.markdown('<div class="upload-label">☁️ Tải Hồ Sơ (Kéo thả file v�
 uploaded_files = st.file_uploader("", type=['pdf'], accept_multiple_files=True, label_visibility="collapsed")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# BUTTON START (CĂN GIỮA TUYỆT ĐỐI BẰNG CỘT)
-# Mẹo: Chia 3 cột tỷ lệ 1:1:1 và đặt nút vào cột giữa. Dùng `use_container_width=True` để nó full cột giữa -> Sẽ nằm ngay tâm.
+# BUTTON
 cb1, cb2, cb3 = st.columns([1, 1, 1])
 with cb2:
     start_btn = st.button("BẮT ĐẦU ĐỔI TÊN", use_container_width=True)
 
-# --- 5. LOGIC CHẠY ---
+# --- 5. LOGIC CHẠY (FIXED) ---
 if start_btn:
     if not api_key: st.toast("⚠️ Nhập API Key đi sếp ơi!")
     elif not uploaded_files: st.toast("⚠️ Chưa có file nào hết!")
     else:
         st.session_state.data = []; st.session_state.selected_idx = 0
         bar = st.progress(0, text="Hệ thống đang xử lý...")
+        
+        errors = []
+        
         for i, f in enumerate(uploaded_files):
-            meta, img = get_gemini_response(f, api_key)
+            meta, img, err = get_gemini_response(f, api_key)
             if meta:
                 st.session_state.data.append({"original_name": f.name, "file_obj": f, "meta": meta, "img": img})
+            else:
+                errors.append(f"{f.name}: {err}")
+                
             bar.progress((i + 1) / len(uploaded_files))
-        bar.empty(); st.success("✅ Xong rồi! Mời sếp kiểm tra.")
+        
+        bar.empty()
+        
+        # KIỂM TRA KẾT QUẢ
+        if st.session_state.data:
+            st.success(f"✅ Đã xử lý thành công {len(st.session_state.data)} hồ sơ!")
+            if errors:
+                with st.expander("⚠️ Có một số file bị lỗi"):
+                    for e in errors: st.error(e)
+        else:
+            st.error("❌ KHÔNG XỬ LÝ ĐƯỢC FILE NÀO! Vui lòng kiểm tra API KEY hoặc File PDF.")
+            if errors:
+                for e in errors: st.error(f"Chi tiết lỗi: {e}")
 
 # --- 6. DASHBOARD KẾT QUẢ ---
 if st.session_state.data:
@@ -241,8 +243,11 @@ if st.session_state.data:
         for i, item in enumerate(st.session_state.data):
             label = f"{i+1}. {item['original_name']}"
             if len(label)>25: label = label[:22]+"..."
-            if st.button(label, key=f"sel_{i}", use_container_width=True):
+            # Highlight nút đang chọn
+            btn_type = "primary" if i == st.session_state.selected_idx else "secondary"
+            if st.button(label, key=f"sel_{i}", use_container_width=True, type=btn_type):
                 st.session_state.selected_idx = i
+                st.rerun() # Refresh lại để cập nhật cột bên phải
                 
     idx = st.session_state.selected_idx
     if idx >= len(st.session_state.data): idx=0
