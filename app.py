@@ -16,145 +16,112 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS "ÉP" GIAO DIỆN TRẮNG & NÚT 3D ---
+# --- 2. CSS FIX LỖI TRIỆT ĐỂ ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     
-    /* ÉP MÀU TRẮNG TUYỆT ĐỐI */
+    /* 1. ÉP NỀN TRẮNG TUYỆT ĐỐI */
     [data-testid="stAppViewContainer"] { background-color: #ffffff !important; }
-    [data-testid="stHeader"] { background-color: rgba(0,0,0,0) !important; } /* Hiện lại Header nhưng trong suốt */
     
-    /* FONT & MÀU CHỮ */
+    /* 2. HIỆN LẠI CÁC ICON GÓC PHẢI TRÊN (MENU, DEPLOY...) VÀ ĐỔI MÀU ĐEN */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+        display: block !important; /* Bắt buộc hiện */
+    }
+    header[data-testid="stHeader"] * {
+        color: #000000 !important; /* Icon màu đen cho nổi trên nền trắng */
+        fill: #000000 !important;
+    }
+    
+    /* FONT CHỮ */
     h1, h2, h3, h4, h5, h6, p, span, div, label {
         color: #000000 !important;
         font-family: 'Roboto', sans-serif;
     }
     
-    /* HEADER: BỎ ĐƯỜNG KẺ DƯỚI */
+    /* HEADER APP */
     .header-container {
         display: flex;
         align-items: center;
         padding-bottom: 10px;
         margin-bottom: 20px;
-        /* border-bottom: 1px solid #e0e0e0; -> ĐÃ XÓA THEO YÊU CẦU */
         background-color: #ffffff;
     }
-    
     .logo-img { height: 75px; margin-right: 25px; }
+    .main-title { font-size: 2.2em; font-weight: 800; line-height: 1.1; letter-spacing: -0.5px; }
+    .pro-tag { font-size: 0.4em; vertical-align: top; color: #d32f2f !important; font-weight: bold; margin-left: 5px; }
+    .sub-title { font-size: 1.2em; color: #555555 !important; margin-top: 5px; font-weight: 500; }
     
-    .main-title {
-        font-size: 2.2em;
-        font-weight: 800;
-        color: #000000 !important;
-        line-height: 1.1;
-        letter-spacing: -0.5px;
-    }
-    
-    .pro-tag {
-        font-size: 0.4em;
-        vertical-align: top;
-        color: #d32f2f !important; /* Màu đỏ Conic */
-        font-weight: bold;
-        margin-left: 5px;
-    }
-    
-    .sub-title {
-        font-size: 1.2em;
-        color: #555555 !important;
-        margin-top: 5px;
-        font-weight: 500;
-    }
-    
-    /* UPLOAD CARD: TINH GỌN, BỎ KHUNG THỪA */
-    .upload-wrapper {
-        margin-top: 20px;
-        margin-bottom: 30px;
-    }
-    
-    .upload-label {
-        font-size: 1.1em;
-        font-weight: 700;
-        color: #003366 !important;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+    /* UPLOAD CARD & FIX NÚT BROWSE FILES */
+    .upload-wrapper { margin-top: 20px; margin-bottom: 30px; }
+    .upload-label { font-size: 1.1em; font-weight: 700; color: #003366 !important; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
-    /* Tùy chỉnh khung file uploader Streamlit */
-    [data-testid="stFileUploader"] {
-        padding: 0px;
-        background-color: #ffffff;
-        border: none;
-    }
+    [data-testid="stFileUploader"] { padding: 0px; border: none; background: white; }
     [data-testid="stFileUploader"] section {
         background-color: #f8f9fa !important;
         border: 2px dashed #d1d5db;
         border-radius: 15px;
-        padding: 40px; /* Tăng padding cho rộng rãi */
-    }
-    [data-testid="stFileUploader"] section:hover {
-        border-color: #d32f2f; /* Hover đỏ */
-        background-color: #fff5f5 !important;
+        padding: 40px;
     }
     
-    /* NÚT BẤM 3D (Ở GIỮA) */
-    div.stButton {
-        text-align: center;
+    /* FIX NÚT 'BROWSE FILES' CHO RÕ NÉT */
+    [data-testid="stFileUploader"] button {
+        background-color: #000000 !important; /* Nền đen */
+        color: #ffffff !important; /* Chữ trắng */
+        border: none !important;
+        font-weight: bold !important;
+        opacity: 1 !important; /* Không cho mờ */
+        padding: 8px 15px !important;
+    }
+    [data-testid="stFileUploader"] button:hover {
+        background-color: #333333 !important; /* Hover xám đậm */
+    }
+    
+    /* CĂN GIỮA NÚT BẮT ĐẦU (DÙNG FLEXBOX) */
+    .stButton {
         display: flex;
-        justify-content: center;
+        justify-content: center; /* Căn giữa chiều ngang */
+        width: 100%;
     }
     
     div.stButton > button {
         background-color: #ffffff !important;
         color: #000000 !important;
         border: 2px solid #000000 !important;
-        border-radius: 12px; /* Bo góc mềm hơn */
+        border-radius: 12px;
         padding: 15px 50px;
         font-size: 1.3em;
         font-weight: 800;
         text-transform: uppercase;
-        
-        /* HIỆU ỨNG 3D */
-        box-shadow: 0 6px 0 #444444; /* Cái bóng dày */
+        box-shadow: 0 6px 0 #444444;
         transform: translateY(0);
         transition: all 0.1s;
         margin-top: 10px;
+        /* Đảm bảo nút không bị giãn full màn hình */
+        width: auto !important; 
+        min-width: 300px;
     }
     
     div.stButton > button:hover {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border-color: #000000 !important;
-        transform: translateY(2px); /* Nhún xuống xíu khi rê chuột */
+        transform: translateY(2px);
         box-shadow: 0 4px 0 #444444;
     }
-    
     div.stButton > button:active {
-        transform: translateY(6px); /* Lún hẳn xuống khi bấm */
-        box-shadow: 0 0 0 #444444; /* Mất bóng */
+        transform: translateY(6px);
+        box-shadow: 0 0 0 #444444;
     }
     
-    /* INPUT API KEY */
+    /* INPUT KEY */
     [data-testid="stTextInput"] input {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-        border: 1px solid #ccc;
-        border-radius: 8px;
+        color: #000000 !important; background: #ffffff !important; border: 1px solid #ccc; border-radius: 8px;
     }
     
     /* KẾT QUẢ */
     .conic-result-box {
-        background-color: #fff0f0;
-        color: #d32f2f !important;
-        padding: 15px;
-        border-radius: 8px;
-        font-family: 'Consolas', monospace;
-        font-weight: bold;
-        border-left: 5px solid #d32f2f;
-        margin-bottom: 20px;
-        word-break: break-all;
+        background-color: #fff0f0; color: #d32f2f !important; padding: 15px; border-radius: 8px;
+        font-family: 'Consolas', monospace; font-weight: bold; border-left: 5px solid #d32f2f;
+        margin-bottom: 20px; word-break: break-all;
     }
     .preview-box { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; height: 550px; display: flex; align-items: center; justify-content: center; }
     .preview-img { max-height: 100%; max-width: 100%; object-fit: contain; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
@@ -212,16 +179,12 @@ def get_gemini_response(uploaded_file, api_key):
 
 # --- 4. GIAO DIỆN CHÍNH ---
 
-# 4.1. HEADER (LOGO + TITLE + API KEY)
-# Chia làm 2 cột: 80% cho Logo/Title, 20% cho API Key
+# HEADER
 c_head, c_key = st.columns([4, 1.5])
-
 with c_head:
-    # Load Logo
     logo_base64 = ""
     if os.path.exists("logo.png"):
         with open("logo.png", "rb") as f: logo_base64 = base64.b64encode(f.read()).decode()
-    
     logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-img">' if logo_base64 else ""
     
     st.markdown(f"""
@@ -235,21 +198,17 @@ with c_head:
     """, unsafe_allow_html=True)
 
 with c_key:
-    # API Key nằm gọn góc phải
     api_key = st.text_input("Google API Key", type="password")
 
-# 4.2. UPLOAD SECTION (ĐÃ XÓA KHUNG CHỮ NHẬT THỪA)
-# Bọc trong div wrapper để căn chỉnh
+# UPLOAD
 st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
 st.markdown('<div class="upload-label">☁️ Tải Hồ Sơ (Kéo thả file vào khung dưới)</div>', unsafe_allow_html=True)
 uploaded_files = st.file_uploader("", type=['pdf'], accept_multiple_files=True, label_visibility="collapsed")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 4.3. NÚT BẤM 3D (CĂN GIỮA TUYỆT ĐỐI)
-# Dùng 3 cột tỷ lệ 1-1-1 để ép nút vào giữa
-cb1, cb2, cb3 = st.columns([1, 1, 1])
-with cb2:
-    start_btn = st.button("BẮT ĐẦU ĐỔI TÊN")
+# BUTTON START (CĂN GIỮA TUYỆT ĐỐI BẰNG CỘT RỖNG)
+# Chỉ dùng 1 cột duy nhất để CSS tự xử lý việc căn giữa
+start_btn = st.button("BẮT ĐẦU ĐỔI TÊN")
 
 # --- 5. LOGIC CHẠY ---
 if start_btn:
