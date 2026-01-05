@@ -16,24 +16,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS FIX GIAO DIỆN CHUẨN (NỀN TRẮNG, NÚT 3D, ICON ĐEN) ---
+# --- 2. CSS GIAO DIỆN CONIC (NỀN TRẮNG - ICON ĐEN - NÚT 3D) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     
-    /* 1. NỀN TRẮNG TUYỆT ĐỐI */
+    /* ÉP MÀU TRẮNG TUYỆT ĐỐI */
     [data-testid="stAppViewContainer"] { background-color: #ffffff !important; }
     
-    /* 2. HIỆN LẠI ICON GÓC PHẢI VÀ ÉP MÀU ĐEN */
+    /* HIỆN LẠI ICON GÓC PHẢI VÀ ÉP MÀU ĐEN */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
         visibility: visible !important;
-    }
-    [data-testid="stToolbar"] {
-        visibility: visible !important;
-        opacity: 1 !important;
-        right: 20px;
-        top: 10px;
     }
     header[data-testid="stHeader"] * {
         color: #000000 !important;
@@ -59,7 +53,7 @@ st.markdown("""
     .pro-tag { font-size: 0.4em; vertical-align: top; color: #d32f2f !important; font-weight: bold; margin-left: 5px; }
     .sub-title { font-size: 1.2em; color: #555555 !important; margin-top: 5px; font-weight: 500; }
     
-    /* 3. UPLOAD FILES */
+    /* UPLOAD FILES */
     .upload-wrapper { margin-top: 20px; margin-bottom: 30px; }
     .upload-label { font-size: 1.1em; font-weight: 700; color: #003366 !important; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
@@ -86,7 +80,7 @@ st.markdown("""
         border-color: #333333 !important;
     }
     
-    /* 4. NÚT BẮT ĐẦU (CĂN GIỮA & 3D) */
+    /* NÚT BẮT ĐẦU (CĂN GIỮA & 3D) */
     div.stButton {
         display: flex;
         justify-content: center;
@@ -135,31 +129,30 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. LOGIC BACKEND (ĐÃ SỬA LỖI MODEL) ---
+# --- 3. LOGIC XỬ LÝ (Y CHANG TOOL THẮNG CẦY) ---
 if 'data' not in st.session_state: st.session_state.data = [] 
 if 'selected_idx' not in st.session_state: st.session_state.selected_idx = 0 
 
-# HÀM TỰ ĐỘNG TÌM MODEL (LẤY TỪ APP THẮNG CẦY SANG)
+# HÀM TỰ ĐỘNG CHỌN MODEL (Của App Thắng Cầy)
 def get_best_model(api_key):
     genai.configure(api_key=api_key)
     try:
-        # Ưu tiên tìm các model Gemini 1.5
+        # Ưu tiên các dòng 1.5
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods and 'gemini-1.5' in m.name:
                 return m.name
-        # Nếu không thấy thì tìm bất kỳ con Gemini nào
+        # Tìm các dòng khác nếu không có 1.5
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods and 'gemini' in m.name:
                 return m.name
     except:
         return None
-    # Đường cùng thì mới trả về chuỗi mặc định, nhưng bỏ chữ 'models/' đi cho chắc
     return "gemini-1.5-flash"
 
 def get_gemini_response(uploaded_file, api_key, model_name):
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(model_name) # Dùng model_name động
+        model = genai.GenerativeModel(model_name)
         
         doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
         page = doc.load_page(0)
@@ -168,7 +161,7 @@ def get_gemini_response(uploaded_file, api_key, model_name):
         img_base64 = base64.b64encode(img_data).decode('utf-8')
         uploaded_file.seek(0)
         
-        # PROMPT GIỮ NGUYÊN TỪ APP THẮNG CẦY
+        # PROMPT QUY TẮC CŨ (YY.MM.DD) - Giữ nguyên
         prompt = """
         Phân tích ảnh văn bản và trả về JSON.
         
@@ -238,22 +231,23 @@ cb1, cb2, cb3 = st.columns([1, 1, 1])
 with cb2:
     start_btn = st.button("BẮT ĐẦU ĐỔI TÊN", use_container_width=True)
 
-# --- 5. LOGIC CHẠY (ĐÃ FIX CHỌN MODEL) ---
+# --- 5. LOGIC CHẠY (SỬ DỤNG HÀM TỰ ĐỘNG TÌM MODEL) ---
 if start_btn:
     if not api_key: st.toast("⚠️ Nhập API Key đi sếp ơi!")
     elif not uploaded_files: st.toast("⚠️ Chưa có file nào hết!")
     else:
-        # TÌM MODEL XỊN NHẤT TRƯỚC KHI CHẠY
+        # TÌM MODEL XỊN NHẤT (GIỐNG APP THẮNG CẦY)
         active_model = get_best_model(api_key)
+        
         if not active_model:
-            st.error("❌ Key không hợp lệ hoặc không tìm thấy Model phù hợp!")
+            st.error("❌ Key không hợp lệ hoặc không tìm thấy Model!")
         else:
             st.session_state.data = []; st.session_state.selected_idx = 0
-            bar = st.progress(0, text=f"Đang xử lý bằng AI ({active_model})...")
+            bar = st.progress(0, text=f"Đang xử lý bằng {active_model}...")
             
             errors = []
             for i, f in enumerate(uploaded_files):
-                # Truyền active_model vào hàm xử lý
+                # Truyền active_model vào
                 meta, img, err = get_gemini_response(f, api_key, active_model)
                 if meta:
                     st.session_state.data.append({"original_name": f.name, "file_obj": f, "meta": meta, "img": img})
