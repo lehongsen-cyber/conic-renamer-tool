@@ -7,6 +7,7 @@ import zipfile
 import base64
 import time
 import os
+import re
 
 # --- 1. CẤU HÌNH TRANG ---
 st.set_page_config(
@@ -84,7 +85,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. LOGIC XỬ LÝ (ĐÃ CẬP NHẬT QUY TẮC KHÔNG DẤU) ---
+# --- 3. LOGIC XỬ LÝ (ĐÃ CẬP NHẬT: TÊN NGẮN GỌN) ---
 if 'data' not in st.session_state: st.session_state.data = [] 
 if 'selected_idx' not in st.session_state: st.session_state.selected_idx = 0 
 
@@ -110,7 +111,7 @@ def get_gemini_response(uploaded_file, api_key, model_name):
         img_base64 = base64.b64encode(img_data).decode('utf-8')
         uploaded_file.seek(0)
         
-        # --- CẬP NHẬT PROMPT: BẮT BUỘC KHÔNG DẤU ---
+        # --- PROMPT MỚI: YÊU CẦU TÊN NGẮN GỌN ---
         prompt = """
         Phân tích hình ảnh văn bản và trả về kết quả JSON.
         
@@ -121,8 +122,10 @@ def get_gemini_response(uploaded_file, api_key, model_name):
            - YYYY.MM.DD: Năm.Tháng.Ngày (Ví dụ 2025.12.31). Dấu CHẤM.
            - LOAI: Viết tắt (QD, TTr, CV, TB, GP, HD, BB, BC...).
            - SoHieu: Số hiệu (Thay '/' bằng '-').
-           - NoiDung: Tóm tắt nội dung. BẮT BUỘC DÙNG TIẾNG VIỆT KHÔNG DẤU (Remove accents/diacritics). Nối bằng gạch dưới (_).
-             Ví dụ: "Phê duyệt" -> "Phe_duyet". TUYỆT ĐỐI KHÔNG ĐỂ CÓ DẤU.
+           - NoiDung: Tóm tắt nội dung SIÊU NGẮN (Tối đa 6-8 từ khóa chính).
+             BẮT BUỘC TIẾNG VIỆT KHÔNG DẤU. Nối bằng gạch dưới (_).
+             Ví dụ: "Phê duyệt kế hoạch sử dụng đất" -> "Phe_duyet_KH_su_dung_dat".
+             TUYỆT ĐỐI KHÔNG viết dài dòng.
            - TrangThai: 'Signed'.
            
         2. CÁC TRƯỜNG HIỂN THỊ UI (Có dấu bình thường):
@@ -140,7 +143,19 @@ def get_gemini_response(uploaded_file, api_key, model_name):
                 response = model.generate_content([prompt, image_part])
                 txt = response.text.strip().replace("```json", "").replace("```", "")
                 data = json.loads(txt)
-                if not data['new_name'].lower().endswith(".pdf"): data['new_name'] += ".pdf"
+                
+                # --- XỬ LÝ CẮT GỌT TÊN FILE NẾU VẪN QUÁ DÀI ---
+                name = data['new_name']
+                if not name.lower().endswith(".pdf"): name += ".pdf"
+                
+                # Nếu tên quá 150 ký tự -> Cắt bớt phần nội dung
+                if len(name) > 150:
+                    parts = name.split('_')
+                    if len(parts) > 4:
+                        # Giữ lại Ngày, Loại, Số hiệu, và 5 từ đầu của Nội dung
+                        safe_name = "_".join(parts[:7]) + "_Signed.pdf"
+                        data['new_name'] = safe_name
+                
                 return data, img_base64, None
             except Exception as e:
                 time.sleep(1)
@@ -231,10 +246,9 @@ if st.session_state.data:
     with c_res:
         st.markdown("<div class='list-header'>✨ KẾT QUẢ</div>", unsafe_allow_html=True)
         
-        # FIX HTML DISPLAY ERROR: Xóa thụt đầu dòng (indentation) trong string
         res_html = f"""
 <div style="background:#fff; padding:20px; border-radius:10px; border:1px solid #eee; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-    <div style="font-size:0.8em; color:#999; margin-bottom:5px;">TÊN FILE ĐỀ XUẤT (KHÔNG DẤU):</div>
+    <div style="font-size:0.8em; color:#999; margin-bottom:5px;">TÊN FILE ĐỀ XUẤT (KHÔNG DẤU, NGẮN GỌN):</div>
     <div style="background-color:#fff0f0; color:#d32f2f; padding:15px; border-radius:8px; font-family:'Consolas',monospace; font-weight:bold; border-left:5px solid #d32f2f; margin-bottom:20px; word-break:break-all;">{meta['new_name']}</div>
     
     <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #f0f0f0; padding-bottom:5px;">
